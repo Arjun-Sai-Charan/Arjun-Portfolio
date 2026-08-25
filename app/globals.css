@@ -164,8 +164,13 @@ button, a {
   color: var(--text);
 }
 
-.nav-link:hover::after {
+.nav-link:hover::after,
+.nav-link.is-active::after {
   width: 100%;
+}
+
+.nav-link.is-active {
+  color: var(--text);
 }
 
 .nav-cta,
@@ -205,7 +210,17 @@ button, a {
 .primary-button:hover,
 .secondary-button:hover,
 .social-link:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+}
+
+.button-arrow,
+.project-arrow {
+  transition: transform 180ms ease;
+}
+
+.primary-button:hover .button-arrow,
+.secondary-button:hover .button-arrow {
+  transform: translate(2px, -2px);
 }
 
 .hero-section,
@@ -519,13 +534,20 @@ button, a {
   color: var(--muted-strong);
   font-size: 0.72rem;
   padding: 0.6rem 0.8rem;
-  transition: border-color 180ms ease, color 180ms ease, transform 180ms ease;
+  transition:
+    border-color 220ms ease,
+    color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
 }
 
 .skill-pill:hover {
   border-color: rgba(124, 255, 178, 0.5);
   color: var(--acid);
-  transform: translateY(-1px);
+  background: rgba(124, 255, 178, 0.07);
+  box-shadow: 0 0 16px rgba(124, 255, 178, 0.07);
+  transform: translateY(-2px);
 }
 
 .project-list {
@@ -540,7 +562,11 @@ button, a {
   background: rgba(255,255,255,0.02);
   padding: 1.3rem 1.4rem;
   overflow: hidden;
-  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+  transition:
+    border-color 220ms ease,
+    background 220ms ease,
+    transform 220ms ease,
+    box-shadow 220ms ease;
 }
 
 .project-card::before {
@@ -555,9 +581,14 @@ button, a {
 }
 
 .project-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(124, 255, 178, 0.32);
-  background: rgba(124, 255, 178, 0.02);
+  transform: translateY(-4px);
+  border-color: rgba(124, 255, 178, 0.42);
+  background: rgba(124, 255, 178, 0.025);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
+}
+
+.project-card:hover .project-arrow {
+  transform: translate(3px, -3px);
 }
 
 .project-card:hover::before {
@@ -636,17 +667,89 @@ button, a {
 }
 
 .journey-list {
+  position: relative;
   display: grid;
-  gap: 1rem;
+  gap: 0;
   margin-top: 2rem;
+  padding-left: 1.5rem;
+}
+
+.journey-list::before {
+  content: "";
+  position: absolute;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  left: 0.35rem;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(124, 255, 178, 0.28) 8%,
+    rgba(124, 255, 178, 0.28) 92%,
+    transparent
+  );
 }
 
 .journey-item {
+  position: relative;
   display: grid;
   grid-template-columns: 8rem 1fr;
   gap: 1.5rem;
-  border-top: 1px solid var(--border);
-  padding-top: 1.2rem;
+  padding: 1.4rem 0 2.2rem;
+}
+
+.journey-node {
+  position: absolute;
+  left: -1.5rem;
+  top: 1.75rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(124, 255, 178, 0.45);
+  background: var(--bg);
+  border-radius: 50%;
+  z-index: 2;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.journey-node span {
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: 50%;
+  background: var(--acid);
+  box-shadow: 0 0 10px rgba(124, 255, 178, 0.55);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.journey-item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+.journey-item:last-child::after {
+  display: none;
+}
+
+.journey-item:hover .journey-node {
+  border-color: var(--acid);
+  box-shadow: 0 0 18px rgba(124, 255, 178, 0.14);
+  transform: scale(1.15);
+}
+
+.journey-item:hover .journey-node span {
+  transform: scale(1.2);
+  box-shadow: 0 0 14px rgba(124, 255, 178, 0.8);
 }
 
 .journey-year {
@@ -654,6 +757,10 @@ button, a {
   font-weight: 600;
   letter-spacing: -0.05em;
   color: var(--acid);
+}
+
+.journey-content {
+  min-width: 0;
 }
 
 .journey-content h3 {
@@ -676,7 +783,6 @@ button, a {
   line-height: 1.8;
   color: var(--muted);
 }
-
 .contact-section {
   padding-bottom: 4rem;
 }
@@ -869,6 +975,11 @@ body.cursor-press .spark-ring {
 
   .journey-item {
     grid-template-columns: 1fr;
+    gap: 0.7rem;
+  }
+
+  .journey-list {
+    padding-left: 1.35rem;
   }
 }
 
@@ -917,5 +1028,26 @@ body.cursor-press .spark-ring {
 
   .spark-cursor {
     display: none !important;
+  }
+}
+
+/* Micro-interaction polish */
+.stat-box {
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease;
+}
+
+.stat-box:hover {
+  transform: translateY(-2px);
+  border-color: rgba(124, 255, 178, 0.24);
+  background: rgba(124, 255, 178, 0.025);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button-arrow,
+  .project-arrow {
+    transition: none !important;
   }
 }

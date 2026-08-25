@@ -14,10 +14,24 @@ import {
 } from "@/data/portfolio";
 
 const fadeInUp = {
-  initial: { opacity: 0, y: 30 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, amount: 0.2 },
-  transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] as const },
+  initial: {
+    opacity: 0,
+    y: 55,
+    scale: 0.98,
+  },
+  whileInView: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+  },
+  viewport: {
+    once: true,
+    amount: 0.15,
+  },
+  transition: {
+    duration: 0.9,
+    ease: [0.22, 1, 0.36, 1] as const,
+  },
 };
 
 type AboutFrameLine = {
@@ -77,6 +91,7 @@ function AboutFrameContent({ frame }: { frame: AboutFrame }) {
   return (
     <div className="about-frame">
       <p className="about-kicker">{frame.kicker}</p>
+
       <div className="about-lines">
         {frame.lines.map((line) => (
           <p
@@ -100,7 +115,9 @@ function AboutMePanel() {
     setReducedMotion(mediaQuery.matches);
 
     const handleChange = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
+
     mediaQuery.addEventListener("change", handleChange);
+
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
@@ -124,8 +141,10 @@ function AboutMePanel() {
           <span className="signal-dot" />
           <span>About me</span>
         </div>
+
         <span className="signal-progress">
-          {String(activeIndex + 1).padStart(2, "0")} / {String(aboutFrames.length).padStart(2, "0")}
+          {String(activeIndex + 1).padStart(2, "0")} /{" "}
+          {String(aboutFrames.length).padStart(2, "0")}
         </span>
       </div>
 
@@ -139,7 +158,10 @@ function AboutMePanel() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                duration: 0.55,
+                ease: [0.22, 1, 0.36, 1],
+              }}
             >
               <AboutFrameContent frame={frame} />
             </motion.div>
@@ -150,7 +172,82 @@ function AboutMePanel() {
   );
 }
 
+function AnimatedStatValue({ value }: { value: string }) {
+  const isNumber = /^\d+(\.\d+)?$/.test(value);
+  const target = isNumber ? Number(value) : 0;
+  const decimals = value.includes(".") ? value.split(".")[1].length : 0;
+
+  const [display, setDisplay] = useState(0);
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    if (!isNumber || !started) return;
+
+    const duration = 1000;
+    const start = performance.now();
+    let frameId: number;
+
+    const animate = (time: number) => {
+      const progress = Math.min((time - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+
+      setDisplay(target * eased);
+
+      if (progress < 1) {
+        frameId = requestAnimationFrame(animate);
+      }
+    };
+
+    frameId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(frameId);
+  }, [isNumber, started, target]);
+
+  if (!isNumber) {
+    return <strong>{value}</strong>;
+  }
+
+  return (
+    <motion.strong
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.6 }}
+      onViewportEnter={() => setStarted(true)}
+      transition={{
+        duration: 0.65,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+    >
+      {display.toFixed(decimals)}
+    </motion.strong>
+  );
+}
+
 export default function PortfolioPage() {
+  const [activeSection, setActiveSection] = useState("top");
+
+  useEffect(() => {
+    const sections = ["top", ...navItems.map((item) => item.href.slice(1))];
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+        if (visible[0]) setActiveSection(visible[0].target.id);
+      },
+      { rootMargin: "-20% 0px -65% 0px", threshold: [0.1, 0.25, 0.5] }
+    );
+
+    sections.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <main className="page-shell">
       <SparkCursor />
@@ -165,7 +262,11 @@ export default function PortfolioPage() {
 
           <nav className="main-nav" aria-label="Main navigation">
             {navItems.map((item) => (
-              <a key={item.href} href={item.href} className="nav-link">
+              <a
+                key={item.href}
+                href={item.href}
+                className={`nav-link ${activeSection === item.href.slice(1) ? "is-active" : ""}`}
+              >
                 {item.label}
               </a>
             ))}
@@ -197,22 +298,29 @@ export default function PortfolioPage() {
             </div>
 
             <p className="hero-description">
-              I'm a computer science graduate interested in AI, machine learning, RAG, and full-stack development. I enjoy turning ideas into practical applications through code, experimentation, and problem solving.
+              I'm a computer science graduate interested in AI, machine learning,
+              RAG, and full-stack development. I enjoy turning ideas into practical
+              applications through code, experimentation, and problem solving.
             </p>
 
             <div className="hero-actions">
               <a href="#work" className="primary-button" data-cursor-label="VIEW WORK">
-                View work
+                View work <ArrowUpRight className="button-arrow" size={14} />
               </a>
+
               <a href="#contact" className="secondary-button" data-cursor-label="CONTACT">
-                Contact
+                Contact <ArrowUpRight className="button-arrow" size={14} />
               </a>
             </div>
           </motion.div>
 
           <motion.div
             {...fadeInUp}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] as const, delay: 0.12 }}
+            transition={{
+              duration: 0.9,
+              ease: [0.22, 1, 0.36, 1] as const,
+              delay: 0.12,
+            }}
             className="hero-panel"
           >
             <AboutMePanel />
@@ -221,11 +329,18 @@ export default function PortfolioPage() {
         </div>
 
         <div className="stats-grid">
-          {stats.map((stat) => (
-            <div key={stat.label} className="stat-box">
-              <strong>{stat.value}</strong>
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              className="stat-box"
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 0.55, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <AnimatedStatValue value={stat.value} />
               <span>{stat.label}</span>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
@@ -235,55 +350,135 @@ export default function PortfolioPage() {
         className="content-section about-section"
         {...fadeInUp}
       >
-        <div className="section-kicker">about</div>
+        <motion.div
+          className="section-kicker"
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.45 }}
+        >
+          about
+        </motion.div>
+
         <div className="about-layout">
-          <div className="about-copy">
+          <motion.div
+            className="about-copy"
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.55, delay: 0.08 }}
+          >
             <h2>
               I build software that <span>solves real problems.</span>
             </h2>
-          </div>
-          <div className="about-story">
+          </motion.div>
+
+          <motion.div
+            className="about-story"
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.35 }}
+            transition={{ duration: 0.55, delay: 0.16 }}
+          >
             <p>
-              I'm a computer science graduate interested in AI, machine learning, RAG, full-stack development, and the problem-solving side of software. I enjoy taking an idea, figuring out how it should work, and turning it into something that actually runs.
+              I'm a computer science graduate interested in AI, machine learning,
+              RAG, full-stack development, and the problem-solving side of software.
+              I enjoy taking an idea, figuring out how it should work, and turning it
+              into something that actually runs.
             </p>
+
             <p>
-              My work spans Python, APIs, web applications, machine learning, RAG, and AI-powered applications. I'm constantly learning, building, and improving my ability to create useful software from the ground up.
+              My work spans Python, APIs, web applications, machine learning, RAG,
+              and AI-powered applications. I'm constantly learning, building, and
+              improving my ability to create useful software from the ground up.
             </p>
-          </div>
+          </motion.div>
         </div>
       </motion.section>
 
       <motion.section id="stack" className="content-section" {...fadeInUp}>
-        <div className="section-kicker">stack</div>
-        <div className="section-header-row">
+        <motion.div
+          className="section-kicker"
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.45 }}
+        >
+          stack
+        </motion.div>
+
+        <motion.div
+          className="section-header-row"
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.55, delay: 0.08 }}
+        >
           <h2>The tools I use to build, experiment, and solve problems.</h2>
-        </div>
+        </motion.div>
 
         <div className="skill-grid">
-          {skillGroups.map((group) => (
-            <div key={group.name} className="skill-column">
+          {skillGroups.map((group, index) => (
+            <motion.div
+              key={group.name}
+              className="skill-column"
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.55, delay: index * 0.07, ease: [0.22, 1, 0.36, 1] }}
+            >
               <p className="skill-label">{group.name}</p>
+
               <div className="skill-list">
                 {group.items.map((item) => (
-                  <span key={item} className="skill-pill" data-cursor-label={item}>
+                  <span
+                    key={item}
+                    className="skill-pill"
+                    data-cursor-label={item}
+                  >
                     {item}
                   </span>
                 ))}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </motion.section>
 
       <motion.section id="work" className="content-section" {...fadeInUp}>
-        <div className="section-kicker">selected work</div>
-        <div className="section-header-row">
-          <h2>Things I've built while learning, experimenting, and solving problems.</h2>
-        </div>
+        <motion.div
+          className="section-kicker"
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.45 }}
+        >
+          selected work
+        </motion.div>
+
+        <motion.div
+          className="section-header-row"
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.55, delay: 0.08 }}
+        >
+          <h2>
+            Things I've built while learning, experimenting, and solving problems.
+          </h2>
+        </motion.div>
 
         <div className="project-list">
-          {projects.map((project) => (
-            <article key={project.slug} className="project-card" data-cursor-label="VIEW">
+          {projects.map((project, index) => (
+            <motion.article
+              key={project.slug}
+              className="project-card"
+              data-cursor-label="VIEW"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.6, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+            >
               <div className="project-topline">
                 <span>{project.category}</span>
                 <span>{project.slug}</span>
@@ -304,37 +499,77 @@ export default function PortfolioPage() {
 
               <div className="project-links">
                 {project.live && (
-                  <a href={project.live} target="_blank" rel="noopener noreferrer">
-                    Live <ArrowUpRight size={14} />
+                  <a
+                    href={project.live}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Live <ArrowUpRight className="project-arrow" size={14} />
                   </a>
                 )}
+
                 {project.github && (
-                  <a href={project.github} target="_blank" rel="noopener noreferrer">
-                    GitHub <ArrowUpRight size={14} />
+                  <a
+                    href={project.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    GitHub <ArrowUpRight className="project-arrow" size={14} />
                   </a>
                 )}
               </div>
-            </article>
+            </motion.article>
           ))}
         </div>
       </motion.section>
 
       <motion.section id="journey" className="content-section" {...fadeInUp}>
-        <div className="section-kicker">journey</div>
-        <div className="section-header-row">
+        <motion.div
+          className="section-kicker"
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.45 }}
+        >
+          journey
+        </motion.div>
+
+        <motion.div
+          className="section-header-row"
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.55, delay: 0.08 }}
+        >
           <h2>My journey through software, AI, and engineering.</h2>
-        </div>
+        </motion.div>
 
         <div className="journey-list">
-          {journey.map((item) => (
-            <div key={item.year} className="journey-item">
+          {journey.map((item, index) => (
+            <motion.div
+              key={`${item.year}-${item.title}`}
+              className="journey-item"
+              initial={{ opacity: 0, x: -18 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{
+                duration: 0.65,
+                delay: index * 0.08,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              <div className="journey-node" aria-hidden="true">
+                <span />
+              </div>
+
               <div className="journey-year">{item.year}</div>
+
               <div className="journey-content">
                 <h3>{item.title}</h3>
                 <p className="journey-place">{item.place}</p>
                 <p>{item.description}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </motion.section>
@@ -342,7 +577,9 @@ export default function PortfolioPage() {
       <motion.footer id="contact" className="contact-section" {...fadeInUp}>
         <div className="contact-frame">
           <p className="section-kicker">contact</p>
+
           <h2>Let&apos;s build something interesting.</h2>
+
           <div className="contact-actions">
             {socialLinks.map((link) => (
               <a
