@@ -1,3 +1,15 @@
+type Project = {
+  slug: string;
+  title: string;
+  category: string;
+  description: string;
+  technologies: readonly string[];
+  accent: string;
+  live?: string;
+  github?: string;
+  featured: boolean;
+};
+
 export const navItems = [
   { label: "About", href: "#about" },
   { label: "Stack", href: "#stack" },
@@ -8,7 +20,10 @@ export const navItems = [
 
 export const socialLinks = [
   { label: "GitHub", href: "https://github.com/Arjun-Sai-Charan" },
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/arjun-sai-charan-kotte-2a210b306/" },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/in/arjun-sai-charan-kotte-2a210b306/",
+  },
   { label: "Email", href: "mailto:kottearjunsaicharan@gmail.com" },
 ] as const;
 
@@ -38,7 +53,7 @@ export const skillGroups = [
   },
 ] as const;
 
-export const projects = [
+export const projects: readonly Project[] = [
   {
     slug: "ai-course-generator",
     title: "AI Course Generator",
