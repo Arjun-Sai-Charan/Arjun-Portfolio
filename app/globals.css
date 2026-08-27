@@ -652,6 +652,9 @@ button, a {
 .project-links {
   padding-top: 0.6rem;
   border-top: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
 }
 
 .project-links a {
@@ -659,11 +662,28 @@ button, a {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  padding: 0.55rem 0.15rem;
   text-decoration: none;
   font-family: var(--font-geist-mono), monospace;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.67rem;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.project-links a:hover {
+  color: var(--acid);
+  transform: translateY(-1px);
+}
+
+.project-links a:hover .project-arrow {
+  transform: translate(3px, -3px);
+}
+
+.project-arrow {
+  transition: transform 180ms ease;
 }
 
 .journey-list {
